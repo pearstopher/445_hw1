@@ -40,29 +40,37 @@ class Data:
     def __init__(self):
         self.TRAIN = "data/mnist_train.csv"
         self.TEST = "data/mnist_test.csv"
-        self.data = None
-
-    def load_training_set(self):
-        self.load_set(self.TRAIN)
-
-    def load_test_set(self):
-        self.load_set(self.TEST)
+        self.training_data = self.load_set(self.TRAIN)
+        self.testing_data = self.load_set(self.TEST)
 
     def load_set(self, dataset):
         print("Reading '" + dataset + "' data set...")
-        self.data = pd.read_csv(dataset).to_numpy(dtype="float")
-        self.preprocess()
+        data = pd.read_csv(dataset).to_numpy(dtype="float")
+        return self.preprocess(data)
 
     # "Preprocessing: Scale each data value to be between 0 and 1.
     # "(i.e., divide each value by 255, which is the maximum value in the original data)
     # "This will help keep the weights from getting too large.
-    def preprocess(self):
+    @staticmethod
+    def preprocess(data):
         max_value = 255
         print("Preprocessing data...")
-        for image_data in self.data:
-            num_pixels = len(image_data) - 1
-            for i in range(1, num_pixels + 1):
-                image_data[i] /= max_value
+        # for image_data in data:
+        #    num_pixels = len(image_data) - 1
+        #    for i in range(1, num_pixels + 1):
+        #        image_data[i] /= max_value
+        for image_data in data:
+            temp = image_data[0]
+            image_data /= 255
+            image_data[0] = temp
+        return data
+        # wow I do see the loop is very slow
+
+    def test(self):
+        return self.testing_data
+
+    def train(self):
+        return self.training_data
 
 
 # "You will use a perceptron with 785 inputs (including bias input)
@@ -72,19 +80,17 @@ class Perceptron:
         print("Initializing perceptron...")
         # Choose small random initial weights, 𝑤! ∈ [−.05, .05]
         # self.weights = np.random.uniform(-0.05, 0.05, (10, 785))
-        self.weights = np.array([np.random.uniform(-0.05, 0.05, 785) for i in range(10)])
+        self.weights = np.array([np.random.uniform(-0.05, 0.05, 785) for _ in range(10)])
         self.outputs = np.zeros(10)
-        self.epoch = 0
         self.eta = eta
 
     # "Compute the accuracy on the training and test sets for this initial set of weights,
     # "to include in your plot. (Call this “epoch 0”.)
-    def compute_accuracy(self, data):
-        print("Epoch " + str(self.epoch) + ": ", end="")
+    def compute_accuracy(self, data, freeze=False):
         num_correct = 0
 
         # for each item in the dataset
-        for d in data.data:
+        for d in data:
             # for each of the ten perceptrons
             for i in range(10):
                 # "Recall that the bias unit is always set to 1,
@@ -114,7 +120,7 @@ class Perceptron:
             # "(Note that this means that for some output units 𝑡(i) − 𝑦(i) could be zero,
             # " and thus the weights to that output unit would not be updated,
             # " even if the prediction was incorrect. That’s okay!)
-            elif self.epoch != 0:
+            elif not freeze:
                 # for each perceptron
                 for i in range(10):
                     ti = 1 if i == d[0] else 0
@@ -127,22 +133,22 @@ class Perceptron:
                     self.weights[i] = np.array([(wi + self.eta*(ti - yi)*xii) for wi, xii in zip(self.weights[i], d)])
                     d[0] = temp
 
-        self.epoch += 1
-        print("\tAccuracy:", num_correct / len(data.data))
+        # return accuracy
+        return num_correct / len(data.data)
 
 
 def main():
     d = Data()
-    d.load_test_set()
 
     p = Perceptron(ETA[1])
+    print("Epoch 0: ", end="")
+    print("Training Set:\tAccuracy:", p.compute_accuracy(d.train(), True), end="\t")
+    print("Testing Set:\tAccuracy:", p.compute_accuracy(d.test(), True))
+
     for i in range(MAX_EPOCHS):
-        p.compute_accuracy(d)
-
-
-
-
-
+        print("Epoch " + str(i + 1) + ": ", end="")
+        print("Training Set:\tAccuracy:", p.compute_accuracy(d.train()), end="\t")
+        print("Testing Set:\tAccuracy:", p.compute_accuracy(d.test(), True))
 
 
 if __name__ == '__main__':
