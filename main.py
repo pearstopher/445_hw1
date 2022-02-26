@@ -22,6 +22,7 @@
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 # "Training: Train perceptrons with three different learning rates:
 # "   η = 0.001, 0.01, and 0.1.
@@ -30,7 +31,7 @@ ETA = (0.001, 0.01, 0.1)
 # "Keep repeating until the accuracy on the training data has essentially stopped improving (i.e., the
 # "difference between training accuracy from one epoch to the next is less than some small number,
 # "like .01,) or you have run for 70 epochs (iterations through the training set), whichever comes first.
-MAX_EPOCHS = 70
+MAX_EPOCHS = 10
 ACCURACY_DIFF = 0.01
 
 
@@ -136,19 +137,41 @@ class Perceptron:
         # return accuracy
         return num_correct / len(data.data)
 
+    def run(self, data, epochs):
+        train_accuracy = []
+        test_accuracy = []
+
+        print("Epoch 0: ", end="")
+        train_accuracy.append(self.compute_accuracy(data.train(), True))
+        test_accuracy.append(self.compute_accuracy(data.train(), True))
+        print("Training Set:\tAccuracy:", "{:0.5f}".format(train_accuracy[0]), end="\t")
+        print("Testing Set:\tAccuracy:", "{:0.5f}".format(test_accuracy[0]))
+
+        for i in range(epochs):
+            print("Epoch " + str(i + 1) + ": ", end="")
+            train_accuracy.append(self.compute_accuracy(data.train()))
+            test_accuracy.append(self.compute_accuracy(data.train(), True))
+            print("Training Set:\tAccuracy:", "{:0.5f}".format(train_accuracy[i + 1]), end="\t")
+            print("Testing Set:\tAccuracy:", "{:0.5f}".format(test_accuracy[i + 1]))
+
+        return train_accuracy, test_accuracy
+
 
 def main():
     d = Data()
-
     p = Perceptron(ETA[1])
-    print("Epoch 0: ", end="")
-    print("Training Set:\tAccuracy:", p.compute_accuracy(d.train(), True), end="\t")
-    print("Testing Set:\tAccuracy:", p.compute_accuracy(d.test(), True))
 
-    for i in range(MAX_EPOCHS):
-        print("Epoch " + str(i + 1) + ": ", end="")
-        print("Training Set:\tAccuracy:", p.compute_accuracy(d.train()), end="\t")
-        print("Testing Set:\tAccuracy:", p.compute_accuracy(d.test(), True))
+    results = p.run(d, MAX_EPOCHS)
+
+    plt.plot(list(range(MAX_EPOCHS + 1)), results[0])
+    plt.plot(list(range(MAX_EPOCHS + 1)), results[1])
+    plt.xlim([0, MAX_EPOCHS])
+    plt.ylim([0, 1])
+    plt.show()
+
+
+
+
 
 
 if __name__ == '__main__':
