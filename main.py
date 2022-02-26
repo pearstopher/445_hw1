@@ -17,9 +17,21 @@
 # (Not included in commit to save space)
 #
 #
+# todo: add in testing set
+# todo: implement ACCURACY_DIFF cutoff
 
 import numpy as np
 import pandas as pd
+
+# "Training: Train perceptrons with three different learning rates:
+# "   η = 0.001, 0.01, and 0.1.
+ETA = (0.001, 0.01, 0.1)
+
+# "Keep repeating until the accuracy on the training data has essentially stopped improving (i.e., the
+# "difference between training accuracy from one epoch to the next is less than some small number,
+# "like .01,) or you have run for 70 epochs (iterations through the training set), whichever comes first.
+MAX_EPOCHS = 70
+ACCURACY_DIFF = 0.01
 
 
 # class for loading and preprocessing MNIST data
@@ -56,18 +68,19 @@ class Data:
 # "You will use a perceptron with 785 inputs (including bias input)
 # "and 10 outputs
 class Perceptron:
-    def __init__(self):
+    def __init__(self, eta):
         print("Initializing perceptron...")
         # Choose small random initial weights, 𝑤! ∈ [−.05, .05]
-        self.weights = np.random.uniform(-0.05, 0.05, (10, 785))
+        # self.weights = np.random.uniform(-0.05, 0.05, (10, 785))
+        self.weights = np.array([np.random.uniform(-0.05, 0.05, 785) for i in range(10)])
         self.outputs = np.zeros(10)
         self.epoch = 0
+        self.eta = eta
 
     # "Compute the accuracy on the training and test sets for this initial set of weights,
     # "to include in your plot. (Call this “epoch 0”.)
     def compute_accuracy(self, data):
         print("Epoch " + str(self.epoch) + ": ", end="")
-        self.epoch += 1
         num_correct = 0
 
         # for each item in the dataset
@@ -78,30 +91,54 @@ class Perceptron:
                 # "and the bias weight is treated like any other weight.
                 temp = d[0]
                 d[0] = 1
+                # "Compute 𝒘 ∙ 𝒙 (i) at each output unit.
                 self.outputs[i] = np.dot(self.weights[i], d)
                 d[0] = temp
 
+            # "If this is the correct prediction, don’t change the weights and
+            # "go on to the next training example.
             if d[0] == np.argmax(self.outputs):
                 num_correct += 1
 
+            # "Otherwise, update all weights in the perceptron:
+            # "    𝑤i ⟵ 𝑤i + 𝜂( 𝑡(i) − 𝑦(i) ) 𝑥i(i) , where
+            # "
+            # "    t(i) = { 1 if the output unit is the correct one for this training example
+            # "           { 0 otherwise
+            # "
+            # "    y(i) = { 1 if 𝒘 ∙ 𝒙(i) > 0
+            # "           { 0 otherwise
+            # "
+            # "Thus, 𝑡(i) − 𝑦(i) can be 1, 0, or −1.
+            # "
+            # "(Note that this means that for some output units 𝑡(i) − 𝑦(i) could be zero,
+            # " and thus the weights to that output unit would not be updated,
+            # " even if the prediction was incorrect. That’s okay!)
+            elif self.epoch != 0:
+                # for each perceptron
+                for i in range(10):
+                    ti = 1 if i == d[0] else 0
+                    yi = 1 if self.outputs[i] > 0 else 0  # self.outputs[i] is already w dot x(i)
+                    # np.add(ETA*(ti - yi), self.weights) # self.weights, out=self.weights,
+
+                    # update the weights as a function of ti, yi, and the elements in both arrays
+                    temp = d[0]
+                    d[0] = 1
+                    self.weights[i] = np.array([(wi + self.eta*(ti - yi)*xii) for wi, xii in zip(self.weights[i], d)])
+                    d[0] = temp
+
+        self.epoch += 1
         print("\tAccuracy:", num_correct / len(data.data))
-
-
-
-
-
-
-
-
-
 
 
 def main():
     d = Data()
     d.load_test_set()
 
-    p = Perceptron()
-    p.compute_accuracy(d)
+    p = Perceptron(ETA[1])
+    for i in range(MAX_EPOCHS):
+        p.compute_accuracy(d)
+
 
 
 
