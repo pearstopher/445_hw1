@@ -173,30 +173,34 @@ class Perceptron:
 
 
 def main():
-    d = Data()
-    p = Perceptron(ETA[1])
-    c = ConfusionMatrix()
 
-    results = p.run(d, c, MAX_EPOCHS)
+    # generate results for each of the given step sizes
+    for eta in ETA:
 
-    # plot the training / testing accuracy
-    plt.plot(list(range(MAX_EPOCHS + 1)), results[0])
-    plt.plot(list(range(MAX_EPOCHS + 1)), results[1])
-    plt.xlim([0, MAX_EPOCHS])
-    plt.ylim([0, 1])
-    plt.show()
+        d = Data()
+        p = Perceptron(eta)
+        c = ConfusionMatrix()
 
-    # plot the confusion matrix
-    for i in range(10):
-        plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)  # nice colors
-        plt.plot([i+0.5, i+0.5], [-0.5, 9.5], i, color='xkcd:chocolate', linewidth=1)
-        for j in range(10):
-            plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # or chartreuse
-            plt.annotate(int(c.matrix[i][j]), (i, j))
-    plt.xlim([-0.5, 9.5])
-    plt.ylim([-0.5, 9.5])
-    plt.gca().invert_yaxis()
-    plt.show()
+        results = p.run(d, c, MAX_EPOCHS)
+
+        # plot the training / testing accuracy
+        plt.plot(list(range(MAX_EPOCHS + 1)), results[0])
+        plt.plot(list(range(MAX_EPOCHS + 1)), results[1])
+        plt.xlim([0, MAX_EPOCHS])
+        plt.ylim([0, 1])
+        plt.show()
+
+        # plot the confusion matrix
+        for i in range(10):
+            plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)  # nice colors
+            plt.plot([i+0.5, i+0.5], [-0.5, 9.5], i, color='xkcd:chocolate', linewidth=1)
+            for j in range(10):
+                plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # or chartreuse
+                plt.annotate(int(c.matrix[i][j]), (i, j))
+        plt.xlim([-0.5, 9.5])
+        plt.ylim([-0.5, 9.5])
+        plt.gca().invert_yaxis()
+        plt.show()
 
 
 if __name__ == '__main__':
