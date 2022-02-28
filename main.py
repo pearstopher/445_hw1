@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+
 # "Training: Train perceptrons with three different learning rates:
 # "   η = 0.001, 0.01, and 0.1.
 ETA = (0.001, 0.01, 0.1)
@@ -31,7 +32,7 @@ ETA = (0.001, 0.01, 0.1)
 # "Keep repeating until the accuracy on the training data has essentially stopped improving (i.e., the
 # "difference between training accuracy from one epoch to the next is less than some small number,
 # "like .01,) or you have run for 70 epochs (iterations through the training set), whichever comes first.
-MAX_EPOCHS = 10
+MAX_EPOCHS = 1
 ACCURACY_DIFF = 0.01
 
 
@@ -62,7 +63,7 @@ class Data:
         #        image_data[i] /= max_value
         for image_data in data:
             temp = image_data[0]
-            image_data /= 255
+            image_data /= max_value
             image_data[0] = temp
         return data
         # wow I do see the loop is very slow
@@ -72,6 +73,14 @@ class Data:
 
     def train(self):
         return self.training_data
+
+
+class ConfusionMatrix:
+    def __init__(self):
+        self.matrix = np.zeros((10, 10))
+
+    def insert(self, true, pred):
+        self.matrix[true][pred] += 1
 
 
 # "You will use a perceptron with 785 inputs (including bias input)
@@ -87,7 +96,7 @@ class Perceptron:
 
     # "Compute the accuracy on the training and test sets for this initial set of weights,
     # "to include in your plot. (Call this “epoch 0”.)
-    def compute_accuracy(self, data, freeze=False):
+    def compute_accuracy(self, data, freeze=False, matrix=None):
         num_correct = 0
 
         # for each item in the dataset
@@ -101,6 +110,10 @@ class Perceptron:
                 # "Compute 𝒘 ∙ 𝒙 (i) at each output unit.
                 self.outputs[i] = np.dot(self.weights[i], d)
                 d[0] = temp
+
+            # add our result to the confusion matrix
+            if matrix:
+                matrix.insert(int(d[0]), int(np.argmax(self.outputs)))
 
             # "If this is the correct prediction, don’t change the weights and
             # "go on to the next training example.
@@ -121,6 +134,8 @@ class Perceptron:
             # "(Note that this means that for some output units 𝑡(i) − 𝑦(i) could be zero,
             # " and thus the weights to that output unit would not be updated,
             # " even if the prediction was incorrect. That’s okay!)
+            #
+            #
             elif not freeze:
                 # for each perceptron
                 for i in range(10):
@@ -137,7 +152,7 @@ class Perceptron:
         # return accuracy
         return num_correct / len(data.data)
 
-    def run(self, data, epochs):
+    def run(self, data, matrix, epochs):
         train_accuracy = []
         test_accuracy = []
 
@@ -154,24 +169,37 @@ class Perceptron:
             print("Training Set:\tAccuracy:", "{:0.5f}".format(train_accuracy[i + 1]), end="\t")
             print("Testing Set:\tAccuracy:", "{:0.5f}".format(test_accuracy[i + 1]))
 
+        # "Confusion matrix on the test set, after training has been completed.
+        self.compute_accuracy(data.train(), True, matrix)
+
         return train_accuracy, test_accuracy
 
 
 def main():
     d = Data()
     p = Perceptron(ETA[1])
+    c = ConfusionMatrix()
 
-    results = p.run(d, MAX_EPOCHS)
+    results = p.run(d, c, MAX_EPOCHS)
 
+    # plot the training / testing accuracy
     plt.plot(list(range(MAX_EPOCHS + 1)), results[0])
     plt.plot(list(range(MAX_EPOCHS + 1)), results[1])
     plt.xlim([0, MAX_EPOCHS])
     plt.ylim([0, 1])
     plt.show()
 
-
-
-
+    # plot the confusion matrix
+    for i in range(10):
+        plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)
+        plt.plot([i+0.5, i+0.5], [-0.5, 9.5], i, color='xkcd:chocolate', linewidth=1)
+        for j in range(10):
+            plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # chartreuse
+            plt.annotate(int(c.matrix[i][j]), (i, j))
+    plt.xlim([-0.5, 9.5])
+    plt.ylim([-0.5, 9.5])
+    plt.gca().invert_yaxis()
+    plt.show()
 
 
 if __name__ == '__main__':
