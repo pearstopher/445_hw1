@@ -17,8 +17,6 @@
 # (Not included in commit to save space)
 #
 #
-# todo: add in testing set
-# todo: implement ACCURACY_DIFF cutoff
 
 import numpy as np
 import pandas as pd
@@ -32,8 +30,9 @@ ETA = (0.001, 0.01, 0.1)
 # "Keep repeating until the accuracy on the training data has essentially stopped improving (i.e., the
 # "difference between training accuracy from one epoch to the next is less than some small number,
 # "like .01,) or you have run for 70 epochs (iterations through the training set), whichever comes first.
-MAX_EPOCHS = 1
-ACCURACY_DIFF = 0.01
+#
+MAX_EPOCHS = 30  # my training results converge much sooner than 70 epochs, however,
+ACCURACY_DIFF = 0.01  # my training accuracy fluctuates just enough that this never seems particularly useful
 
 
 # class for loading and preprocessing MNIST data
@@ -191,10 +190,10 @@ def main():
 
     # plot the confusion matrix
     for i in range(10):
-        plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)
+        plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)  # nice colors
         plt.plot([i+0.5, i+0.5], [-0.5, 9.5], i, color='xkcd:chocolate', linewidth=1)
         for j in range(10):
-            plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # chartreuse
+            plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # or chartreuse
             plt.annotate(int(c.matrix[i][j]), (i, j))
     plt.xlim([-0.5, 9.5])
     plt.ylim([-0.5, 9.5])
