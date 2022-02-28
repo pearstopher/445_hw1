@@ -56,16 +56,13 @@ class Data:
     def preprocess(data):
         max_value = 255
         print("Preprocessing data...")
-        # for image_data in data:
-        #    num_pixels = len(image_data) - 1
-        #    for i in range(1, num_pixels + 1):
-        #        image_data[i] /= max_value
+        # iterating one image at a time to save the true values
         for image_data in data:
             temp = image_data[0]
+            # no second loop here: preprocess the whole image at once
             image_data /= max_value
             image_data[0] = temp
         return data
-        # wow I do see the loop is very slow
 
     def test(self):
         return self.testing_data
@@ -74,6 +71,7 @@ class Data:
         return self.training_data
 
 
+# very simple custom confusion matrix
 class ConfusionMatrix:
     def __init__(self):
         self.matrix = np.zeros((10, 10))
