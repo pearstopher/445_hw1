@@ -195,7 +195,7 @@ def main():
             plt.plot([-0.5, 9.5], [i+0.5, i+0.5], i, color='xkcd:chocolate', linewidth=1)  # nice colors
             plt.plot([i+0.5, i+0.5], [-0.5, 9.5], i, color='xkcd:chocolate', linewidth=1)
             for j in range(10):
-                plt.scatter(i, j, s=(c.matrix[i][j] / 3), c="xkcd:fuchsia", marker="s")  # or chartreuse
+                plt.scatter(i, j, s=(c.matrix[i][j] / 1), c="xkcd:fuchsia", marker="s")  # or chartreuse
                 plt.annotate(int(c.matrix[i][j]), (i, j))
         plt.xlim([-0.5, 9.5])
         plt.ylim([-0.5, 9.5])
