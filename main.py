@@ -167,7 +167,7 @@ class Perceptron:
             print("Testing Set:\tAccuracy:", "{:0.5f}".format(test_accuracy[i + 1]))
 
         # "Confusion matrix on the test set, after training has been completed.
-        self.compute_accuracy(data.train(), True, matrix)
+        self.compute_accuracy(data.test(), True, matrix)
 
         return train_accuracy, test_accuracy
 
